@@ -2,19 +2,21 @@ import icons from  'url:../../img/icons.svg';
 
 export default class View {
 
-  render(data){
-
+  render(data, render = true) {
+    // * if state is empty render error message
     if(!data || (Array.isArray(data)) && data.length === 0 ) return this.renderError();
     this._data = data;
-
     const markup = this._generateMarkup();
+
+    // * if render is false we exit the method and return the markup
+    if (!render) return markup;
+    // * removing previews markup in the container
     this._clear()
     // * inserting fetched data.
     this._parentElement.insertAdjacentHTML('afterbegin', markup)
   }
   update(data){
 
-    // if(!data || (Array.isArray(data)) && data.length === 0 ) return this.renderError();
     this._data = data;
     const newMarkup = this._generateMarkup();
 
@@ -36,11 +38,11 @@ export default class View {
       // * Checking if if each New node differs from the old node
       // * converting the attributes of the newEl that passes the condition
       // * iterating over each attribute of the new array (and because this is the node that changed)
-      // * we set the attributes name and value to the curEl 
+      // * we set the attributes name and value to the curEl
       if(!newEl.isEqualNode(curEl)) {
-        Array.from(newEl.attributes).forEach(attr => 
+        Array.from(newEl.attributes).forEach(attr =>
           curEl.setAttribute(attr.name, attr.value)
-        ) 
+        )
       }
     })
   }

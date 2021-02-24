@@ -3,7 +3,7 @@ import {Fraction} from 'fractional';
 import View from './View';
 
 class RecipeView extends View {
-  _parentElement = document.querySelector('.recipe');
+  _parentElement = document.querySelector('.recipe'); // * ref
   _data;
   _errorMessage = 'We could not find that recipe. Please try another one!';
   _message = 'Start by searching for a recipe or an ingredient. Have fun!';
@@ -20,7 +20,14 @@ class RecipeView extends View {
       if (updateTo > 0 ) handler(updateTo)
     })
   }
-  _generateMarkup() {
+  addHandlerAddBookmark(handler) {
+    this._parentElement.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn--bookmark');
+      if(!btn) return;
+      handler()
+    })
+  }
+  _generateMarkup() { // * render
     return `
       <figure class="recipe__fig">
         <img src="${this._data.image}" alt="${this._data.title}" class="recipe__img" />
@@ -60,9 +67,9 @@ class RecipeView extends View {
         <div class="recipe__user-generated">
         
         </div>
-        <button class="btn--round">
+        <button class="btn--round btn--bookmark">
           <svg class="">
-            <use href="${icons}#icon-bookmark-fill"></use>
+            <use href="${icons}#icon-bookmark${this._data.bookmarked ? '-fill' : ''}"></use>
           </svg>
         </button>
       </div>
@@ -92,7 +99,7 @@ class RecipeView extends View {
       </div>
     `;
   }
-  _generateMarkupIngredient (ing) {
+  _generateMarkupIngredient (ing) { // * component
       return `
         <li class="recipe__ingredient">
           <svg class="recipe__icon">

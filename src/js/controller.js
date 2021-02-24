@@ -5,30 +5,29 @@ import recipeView from './views/recipeView'
 import searchView from './views/searchView';
 import resultsView from './views/resultsView';
 import paginationView from './views/paginationView';
+import bookmarksView from './views/bookmarksView';
 
+// * parcel feature
 if(module.hot) {
   module.hot.accept();
 }
 
-
-
 const controlRecipes = async () => {
-  // * 1. Loading recipe
   try {
     // * obtaining hash from url
     const id = window.location.hash.slice(1);
-    // * guardian
+    // * null guardian
     if ( !id ) return;
     // * Ui spinner
     recipeView.renderSpinner();
     // * update results view to mark selected search result
     resultsView.update(model.getSearchResultsPage())
+    bookmarksView.update(model.state.bookmarks)
     // * 1. Fetching Data
     await model.loadRecipe(id)
     // * 2. Rendering recipe
     recipeView.render(model.state.recipe)
   } catch (err){
-    console.log('Err', err)
     recipeView.renderError()
   }
 };
@@ -49,11 +48,11 @@ const controlSearchResults = async () => {
     paginationView.render(model.state.search)
 
   } catch (error) {
-    console.log(error);
     recipeView.renderError()
   }
 };
 
+// * receiving an integer as the goToPage
 const controlPagination = (goToPage) => {
   // * render results
   resultsView.render(model.getSearchResultsPage(goToPage))
@@ -66,8 +65,24 @@ const controlServings = (newServings) => {
   // * Update the recipe servings (in state)
   model.updateServings(newServings)
   // * Update the recipe view
-  // recipeView.render(model.state.recipe)
   recipeView.update(model.state.recipe)
+};
+
+const controlAddBookmark = () => {
+  // * toogle bookmark
+  if(!model.state.recipe.bookmarked) {
+    model.addBookmark(model.state.recipe)
+  } else {
+    model.deleteBookmark(model.state.recipe.id)
+  }
+  // * update button in recipeView
+  recipeView.update(model.state.recipe)
+  // * render bookmarks
+  bookmarksView.render(model.state.bookmarks)
+}
+
+const controlBookmarks = () => {
+  bookmarksView.render(model.state.bookmarks)
 }
 
 const init = () => {
@@ -75,6 +90,8 @@ const init = () => {
   recipeView.addHandlerUpdateServings(controlServings);
   searchView.addHandlerSearch(controlSearchResults);
   paginationView.addHandlerClick(controlPagination);
+  recipeView.addHandlerAddBookmark(controlAddBookmark);
+  bookmarksView.addHandlerRender(controlBookmarks)
 };
 
 init();
