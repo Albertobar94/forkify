@@ -35,7 +35,7 @@ export const loadSearchResults = async (query) => {
     // * grabbing the hash from the url
     state.search.query = query;
     // * fetching the data
-    const data = await AJAX(`${API_URL}?search=${query}?key=${KEY}`);
+    const data = await AJAX(`${API_URL}?search=${query}&key=${KEY}`);
     // * updating the state with the new fetched data
     state.search.results = data.data.recipes.map( rec => ({
       id: rec.id,
@@ -43,6 +43,7 @@ export const loadSearchResults = async (query) => {
       publisher: rec.publisher,
       sourceUrl: rec.source_url,
       image: rec.image_url,
+      ...(rec.key && {key: rec.key})
     }))
     // * resetting the page state
     state.search.page = 1;

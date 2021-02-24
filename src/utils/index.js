@@ -1,5 +1,5 @@
 export const formatRecipeIngredients = (element, index) => {
-  return element[index].replaceAll(' ', '').split(',')
+  return element[index].split(',').map(el => el.trim())
 }
 export const isNotCorrectlyFormatted = (ingredientArray) => {
   return ingredientArray.length !== 3;
