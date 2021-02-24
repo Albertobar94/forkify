@@ -1,5 +1,6 @@
-import { API_URL, RES_PER_PAGE } from "./config";
-import { getJSON } from "./views/helpers";
+import { createRecipeObject, formatRecipeIngredients, isNotCorrectlyFormatted } from "../utils";
+import { API_URL, RES_PER_PAGE, KEY } from "./config";
+import { AJAX } from "./views/helpers";
 
 export const state = {
   // * current recipe in the recipeView
@@ -16,22 +17,8 @@ export const state = {
 
 export const loadRecipe = async(id) => {
   try {
-    // * fetching JSON data
-    const data = await getJSON(`${API_URL}/${id}`);
-    // * Dispatching the data to store
-    const { recipe } = data.data;
-    // *
-    state.recipe = {
-      id: recipe.id,
-      title: recipe.title,
-      publisher: recipe.publisher,
-      sourceUrl: recipe.source_url,
-      image: recipe.image_url,
-      servings: recipe.servings,
-      cookingTime: recipe.cooking_time,
-      ingredients: recipe.ingredients
-    }
-    // * iterating on the bookmarks array and updating the data
+    const resp = await AJAX(`${API_URL}/${id}?key=${KEY}`);
+    state.recipe = createRecipeObject(resp);
     if(state.bookmarks.some( bookmark => bookmark.id === id)) {
       state.recipe.bookmarked = true;
     } else {
@@ -48,7 +35,7 @@ export const loadSearchResults = async (query) => {
     // * grabbing the hash from the url
     state.search.query = query;
     // * fetching the data
-    const data = await getJSON(`${API_URL}?search=${query}`);
+    const data = await AJAX(`${API_URL}?search=${query}?key=${KEY}`);
     // * updating the state with the new fetched data
     state.search.results = data.data.recipes.map( rec => ({
       id: rec.id,
@@ -125,4 +112,34 @@ loadBookmarks()
 
 const clearBookmarks = () => {
   localStorage.clear('bookmarks')
+}
+
+export const uploadRecipe = async (newRecipe) => {
+  try {
+    // * we CONVERT*D* the object to tuples and ITERATE*I* over each array and SELECT *C* the ones that start with 'ingredient' and are not empty
+  const ingredients = Object.entries(newRecipe)
+  .filter(entry => entry[0].startsWith('ingredient') && entry[1] !== '')
+  .map(ing => {
+    const ingArr = formatRecipeIngredients(ing, 1);
+    if(isNotCorrectlyFormatted(ingArr)) {
+      throw new Error('Wrong Ingredient format! Please use the correct format')
+    }
+    const [quantity, unit, description] = ingArr;
+    return { quantity: quantity ? +quantity : null, unit, description }
+  });
+  const recipe = {
+    title: newRecipe.title,
+    source_url: newRecipe.sourceUrl,
+    image_url: newRecipe.image,
+    publisher: newRecipe.publisher,
+    cooking_time: +newRecipe.cookingTime,
+    servings: +newRecipe.servings,
+    ingredients
+  }
+  const resp = await AJAX(`${API_URL}?key=${KEY}`, recipe);
+  state.recipe = createRecipeObject(resp);
+  addBookmark(state.recipe)
+  } catch (error) {
+    throw error;
+  }
 }

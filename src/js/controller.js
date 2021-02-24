@@ -6,6 +6,8 @@ import searchView from './views/searchView';
 import resultsView from './views/resultsView';
 import paginationView from './views/paginationView';
 import bookmarksView from './views/bookmarksView';
+import addRecipeView from './views/addRecipeView';
+
 
 // * parcel feature
 if(module.hot) {
@@ -85,13 +87,32 @@ const controlBookmarks = () => {
   bookmarksView.render(model.state.bookmarks)
 }
 
+const controlAddRecipe = async(newRecipe) => {
+  try {
+    addRecipeView.renderSpinner();
+    await model.uploadRecipe(newRecipe)
+    recipeView.render(model.state.recipe);
+    // * Close modal
+    setTimeout(() => {
+      addRecipeView.toggleWindow();
+    }, 2500);
+    addRecipeView.renderMessage();
+    bookmarksView.render(model.state.bookmarks);
+    // *Change Id url
+    window.history.pushState(null, '', `#${model.state.recipe.id}`)
+  } catch (error) {
+    addRecipeView.renderError(error.message)
+  }
+}
+
 const init = () => {
   recipeView.addHandlerRender(controlRecipes);
   recipeView.addHandlerUpdateServings(controlServings);
   searchView.addHandlerSearch(controlSearchResults);
   paginationView.addHandlerClick(controlPagination);
   recipeView.addHandlerAddBookmark(controlAddBookmark);
-  bookmarksView.addHandlerRender(controlBookmarks)
+  bookmarksView.addHandlerRender(controlBookmarks);
+  addRecipeView.addHandlerUpload(controlAddRecipe);
 };
 
 init();
